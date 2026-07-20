@@ -92,7 +92,7 @@ Raw CSV  →  Python Pandas (cleaning)  →  MySQL (SQL queries)  →  Power BI 
 - *Analysis:* MySQL — Aggregations, CTEs, Window Functions, Conditional Aggregation
 - *Visualisation:* Microsoft Power BI Desktop — KPI cards, donut chart, column/bar charts, 4 slicers
 - *Reporting:* Microsoft Word — Full pipeline documentation and business insights
-- *Data Source:* Kaggle — Customer Shopping Trends Dataset (synthetic) by iamsouravbanerjee
+- *Data Source:* Kaggle — Customer Shopping Trends Dataset (synthetic).
 
 ---
 
