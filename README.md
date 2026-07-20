@@ -34,7 +34,7 @@ This project analyses a synthetic customer shopping dataset to uncover insights 
 
 ## 🧩 Dataset
 
-- **Source:** Kaggle — [Customer Shopping Trends Dataset](https://www.kaggle.com/datasets/iamsouravbanerjee/customer-shopping-trends-dataset) by iamsouravbanerjee
+- **Source:** Kaggle — [Customer Shopping Trends Dataset](https://www.kaggle.com/datasets/iamsouravbanerjee/customer-shopping-trends-dataset)
 - **Records:** 3,900 customers
 - **Columns:** 18 original features
 - **Note:** This is a synthetic dataset created for educational purposes only.
