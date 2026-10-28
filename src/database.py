@@ -90,3 +90,4 @@ class DatabaseManager:
             df = self.execute_query(block)
             results.append((desc, df))
         return results
+

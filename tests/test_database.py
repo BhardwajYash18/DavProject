@@ -49,3 +49,4 @@ def test_all_queries_execution(populated_db):
     for desc, res_df in results:
         assert isinstance(res_df, pd.DataFrame)
         assert len(res_df) > 0, f"Query '{desc}' returned empty results"
+

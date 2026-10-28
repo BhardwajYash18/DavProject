@@ -47,3 +47,4 @@ def test_api_export_json():
     assert res.status_code == 200
     records = res.json()
     assert len(records) == 25
+

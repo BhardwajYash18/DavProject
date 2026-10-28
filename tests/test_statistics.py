@@ -61,3 +61,4 @@ def test_hypothesis_tests(cleaned_data):
     assert "f_statistic" in anova
     assert "p_value" in anova
     assert 0.0 <= anova["p_value"] <= 1.0
+

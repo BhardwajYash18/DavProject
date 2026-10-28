@@ -33,3 +33,4 @@ def test_ridge_regression(cleaned_data):
     res = pipe.train(model_type="ridge", alpha=1.0)
     assert res["model_type"] == "ridge"
     assert res["test_metrics"]["mae"] > 0
+

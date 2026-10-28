@@ -175,3 +175,4 @@ class Visualizer:
             margin=dict(t=40, b=20, l=20, r=20)
         )
         return fig
+

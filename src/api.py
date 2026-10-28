@@ -113,3 +113,4 @@ def export_dataset_json(limit: int = Query(100, ge=1, le=3900)):
     """Export cleaned customer records as JSON."""
     df = get_data()
     return JSONResponse(content=df.head(limit).to_dict(orient="records"))
+

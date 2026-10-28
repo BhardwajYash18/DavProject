@@ -49,3 +49,4 @@ def test_validate_schema_failure():
     bad_df = pd.DataFrame({"Customer ID": [1, 2], "Age": [20, 30]})
     with pytest.raises(DataLoaderError, match="Schema validation failed"):
         DataLoader.validate_shopping_schema(bad_df)
+

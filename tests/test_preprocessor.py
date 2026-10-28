@@ -64,3 +64,4 @@ def test_run_full_pipeline(raw_data, tmp_path):
     assert len(cleaned) == len(raw_data)
     assert (tmp_path / "customer_shopping_cleaned.csv").exists()
     assert (tmp_path / "customer_shopping_cleaned.json").exists()
+

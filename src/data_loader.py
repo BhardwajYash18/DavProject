@@ -122,3 +122,4 @@ class DataLoader:
         if missing:
             raise DataLoaderError(f"Schema validation failed. Missing required columns: {missing}")
         return True
+

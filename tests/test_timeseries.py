@@ -36,3 +36,4 @@ def test_forecasting():
     assert fc["linear_trend"]["mae"] > 0
     assert fc["linear_trend"]["rmse"] > 0
     assert len(fc["predicted_values"]) == 30
+

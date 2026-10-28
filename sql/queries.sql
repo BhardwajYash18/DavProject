@@ -134,3 +134,4 @@ FROM orders
 GROUP BY category
 HAVING COUNT(*) > 500 AND AVG(purchase_amount) > 55.0
 ORDER BY total_category_revenue DESC;
+

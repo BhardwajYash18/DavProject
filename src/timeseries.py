@@ -133,3 +133,4 @@ class TimeSeriesAnalyzer:
             "actual_values": test.values.tolist(),
             "predicted_values": trend_pred.tolist()
         }
+
