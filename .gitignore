@@ -1,0 +1,14 @@
+# Python byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+.pytest_cache/
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Local databases & logs
+*.log
