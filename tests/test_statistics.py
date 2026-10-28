@@ -29,6 +29,16 @@ def test_univariate_summary():
     assert res["range"] == 40.0
 
 
+def test_univariate_summary_edge_cases():
+    # Empty series
+    assert DescriptiveStatistics.compute_univariate_summary(pd.Series([])) == {}
+    # Single value series
+    single_res = DescriptiveStatistics.compute_univariate_summary(pd.Series([42.0]))
+    assert single_res["count"] == 1
+    assert single_res["mean"] == 42.0
+    assert single_res["variance"] == 0.0
+
+
 def test_grouped_spending_summary(cleaned_data):
     grp = DescriptiveStatistics.grouped_spending_summary(cleaned_data, "category")
     assert len(grp) == 4
@@ -37,9 +47,10 @@ def test_grouped_spending_summary(cleaned_data):
     assert np.isclose(grp["revenue_share_pct"].sum(), 100.0)
 
 
-def test_correlation_matrix(cleaned_data):
-    corr = CorrelationAnalyzer.compute_correlation_matrix(cleaned_data)
+def test_correlation_matrix_excludes_identifiers(cleaned_data):
+    corr = CorrelationAnalyzer.compute_correlation_matrix(cleaned_data, exclude_identifiers=True)
     assert "purchase_amount" in corr.columns
+    assert "customer_id" not in corr.columns, "Identifier 'customer_id' must be excluded from correlation"
     assert np.isclose(corr.loc["purchase_amount", "purchase_amount"], 1.0)
 
 
@@ -61,4 +72,3 @@ def test_hypothesis_tests(cleaned_data):
     assert "f_statistic" in anova
     assert "p_value" in anova
     assert 0.0 <= anova["p_value"] <= 1.0
-

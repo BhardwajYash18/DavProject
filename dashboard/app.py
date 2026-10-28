@@ -170,9 +170,9 @@ with tab_timeseries:
         ts_fig = Visualizer.plotly_timeseries_trends(daily_ts)
         st.plotly_chart(ts_fig, use_container_width=True)
 
-        st.subheader("Monthly Seasonality Index")
+        st.subheader("Monthly Seasonality Index (Complete Annual Cycle: 2023)")
         analyzer = TimeSeriesAnalyzer(TIMESERIES_PATH)
-        season_df = analyzer.compute_monthly_seasonality()
+        season_df = analyzer.compute_monthly_seasonality(full_year_only=True)
         st.dataframe(season_df, use_container_width=True)
     else:
         st.warning("Time-series dataset not found.")

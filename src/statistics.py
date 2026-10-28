@@ -21,12 +21,12 @@ class DescriptiveStatistics:
         q3 = float(clean_s.quantile(0.75))
         iqr = q3 - q1
 
-        variance = float(clean_s.var(ddof=1))
-        std_dev = float(clean_s.std(ddof=1))
+        variance = float(clean_s.var(ddof=1)) if len(clean_s) > 1 else 0.0
+        std_dev = float(clean_s.std(ddof=1)) if len(clean_s) > 1 else 0.0
         mean_val = float(clean_s.mean())
 
-        skewness = float(clean_s.skew())
-        kurt = float(clean_s.kurtosis())
+        skewness = float(clean_s.skew()) if std_dev > 0 and len(clean_s) > 2 else 0.0
+        kurt = float(clean_s.kurtosis()) if std_dev > 0 and len(clean_s) > 3 else 0.0
 
         return {
             "count": int(len(clean_s)),
@@ -47,12 +47,16 @@ class DescriptiveStatistics:
         }
 
     @staticmethod
-    def compute_all_numeric_summaries(df: pd.DataFrame) -> pd.DataFrame:
-        """Compute univariate summaries for all numeric columns in a DataFrame."""
-        numeric_cols = df.select_dtypes(include=[np.number]).columns
+    def compute_all_numeric_summaries(df: pd.DataFrame, exclude_identifiers: bool = True) -> pd.DataFrame:
+        """Compute univariate summaries for numeric columns in a DataFrame."""
+        numeric_df = df.select_dtypes(include=[np.number])
+        if exclude_identifiers:
+            id_cols = [c for c in numeric_df.columns if "id" in c.lower()]
+            numeric_df = numeric_df.drop(columns=id_cols, errors="ignore")
+
         summaries = {}
-        for col in numeric_cols:
-            summaries[col] = DescriptiveStatistics.compute_univariate_summary(df[col])
+        for col in numeric_df.columns:
+            summaries[col] = DescriptiveStatistics.compute_univariate_summary(numeric_df[col])
         return pd.DataFrame(summaries)
 
     @staticmethod
@@ -78,9 +82,19 @@ class CorrelationAnalyzer:
     """Computes correlation matrices and bivariate relationships."""
 
     @staticmethod
-    def compute_correlation_matrix(df: pd.DataFrame, method: str = "pearson") -> pd.DataFrame:
-        """Calculate correlation matrix for numeric features."""
+    def compute_correlation_matrix(df: pd.DataFrame, method: str = "pearson", exclude_identifiers: bool = True) -> pd.DataFrame:
+        """
+        Calculate correlation matrix for numeric features.
+        
+        Args:
+            df: Input DataFrame.
+            method: 'pearson', 'spearman', or 'kendall'.
+            exclude_identifiers: If True (default), removes surrogate keys like 'customer_id'.
+        """
         numeric_df = df.select_dtypes(include=[np.number])
+        if exclude_identifiers:
+            id_cols = [c for c in numeric_df.columns if "id" in c.lower()]
+            numeric_df = numeric_df.drop(columns=id_cols, errors="ignore")
         return numeric_df.corr(method=method)
 
 
@@ -93,7 +107,7 @@ class HypothesisTesting:
     @staticmethod
     def test_subscriber_spending_difference(df: pd.DataFrame) -> dict:
         """
-        Two-sample independent t-test: Compare purchase amounts of Subscribed vs Non-Subscribed customers.
+        Two-sample independent t-test: Compare purchase amounts of Subscribed vs Non-Subscribers.
         H0: Mean purchase amount of subscribers == Mean purchase amount of non-subscribers.
         H1: Mean purchase amount of subscribers != Mean purchase amount of non-subscribers.
         """
@@ -182,4 +196,3 @@ class HypothesisTesting:
             "significant_at_05": bool(p_val < 0.05),
             "interpretation": interpretation
         }
-

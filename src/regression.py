@@ -3,9 +3,17 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.metrics import mean_absolute_error, root_mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
+
+# Backward-compatible RMSE computation for scikit-learn < 1.4.0
+try:
+    from sklearn.metrics import root_mean_squared_error
+except ImportError:
+    from sklearn.metrics import mean_squared_error
+    def root_mean_squared_error(y_true, y_pred):
+        return float(np.sqrt(mean_squared_error(y_true, y_pred)))
 
 
 class RegressionPipeline:
@@ -145,4 +153,3 @@ class RegressionPipeline:
             )
         }
         return results
-

@@ -1,13 +1,28 @@
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_error, root_mean_squared_error
+from sklearn.metrics import mean_absolute_error
+
+# Backward-compatible RMSE computation for scikit-learn < 1.4.0
+try:
+    from sklearn.metrics import root_mean_squared_error
+except ImportError:
+    from sklearn.metrics import mean_squared_error
+    def root_mean_squared_error(y_true, y_pred):
+        return float(np.sqrt(mean_squared_error(y_true, y_pred)))
 
 
 class TimeSeriesAnalyzer:
     """
     Time-series analysis and forecasting for dated retail transaction data.
     Enforces strict chronological sorting and temporal train/test separation.
+    
+    Academic Assumptions:
+    - Each record represents an individual customer retail transaction.
+    - Dates represent the calendar date on which the purchase was finalized.
+    - Multiple transactions occur on the same date and are aggregated into daily totals.
+    - By default, unobserved calendar days are treated as non-reporting intervals rather
+      than confirmed zero-sales days, preventing artificial deflation of daily averages.
     """
 
     def __init__(self, file_path: str | Path, date_col: str = "Date", target_col: str = "Total Amount"):
@@ -17,8 +32,15 @@ class TimeSeriesAnalyzer:
         self.df = None
         self.daily_series = None
 
-    def load_and_prepare(self) -> pd.DataFrame:
-        """Parse datetime column, sort chronologically, and set index."""
+    def load_and_prepare(self, fill_unobserved_days: bool = False) -> pd.DataFrame:
+        """
+        Parse datetime column, sort chronologically, and aggregate by date.
+        
+        Args:
+            fill_unobserved_days: If True, reindexes across all calendar days filling
+                                 unrecorded dates with 0. If False (recommended),
+                                 preserves only observed trading dates.
+        """
         raw_df = pd.read_csv(self.file_path)
         if self.date_col not in raw_df.columns:
             raise KeyError(f"Date column '{self.date_col}' not found in {list(raw_df.columns)}")
@@ -27,15 +49,16 @@ class TimeSeriesAnalyzer:
         raw_df = raw_df.sort_values(by=self.date_col).reset_index(drop=True)
         self.df = raw_df
 
-        # Aggregate to daily total sales
+        # Aggregate observed transactions by date
         daily = raw_df.groupby(self.date_col)[self.target_col].agg(["sum", "count", "mean"]).reset_index()
         daily.columns = ["date", "daily_total", "transaction_count", "average_transaction"]
         daily = daily.set_index("date").sort_index()
 
-        # Fill missing calendar dates with 0
-        full_idx = pd.date_range(start=daily.index.min(), end=daily.index.max(), freq="D")
-        daily = daily.reindex(full_idx, fill_value=0)
-        daily.index.name = "date"
+        if fill_unobserved_days:
+            full_idx = pd.date_range(start=daily.index.min(), end=daily.index.max(), freq="D")
+            daily = daily.reindex(full_idx, fill_value=0)
+            daily.index.name = "date"
+
         self.daily_series = daily
         return self.daily_series
 
@@ -65,12 +88,22 @@ class TimeSeriesAnalyzer:
         resampled.rename(columns={"daily_total": "total_sales"}, inplace=True)
         return resampled
 
-    def compute_monthly_seasonality(self) -> pd.DataFrame:
-        """Calculate seasonal index by month."""
+    def compute_monthly_seasonality(self, full_year_only: bool = True) -> pd.DataFrame:
+        """
+        Calculate seasonal index by calendar month.
+        
+        Args:
+            full_year_only: If True, evaluates the complete 12-month annual cycle (2023)
+                           to prevent incomplete months (e.g. Jan 1, 2024 with only 1 day)
+                           from distorting the monthly seasonality index.
+        """
         if self.daily_series is None:
             self.load_and_prepare()
 
         monthly = self.resample_sales(rule="ME")
+        if full_year_only:
+            monthly = monthly[monthly["date"].dt.year == 2023].copy()
+
         monthly["month"] = monthly["date"].dt.strftime("%b")
         monthly["month_num"] = monthly["date"].dt.month
         monthly_summary = monthly.groupby(["month_num", "month"])["total_sales"].mean().reset_index()
@@ -80,7 +113,7 @@ class TimeSeriesAnalyzer:
 
     def run_temporal_forecasting(self, test_days: int = 60) -> dict:
         """
-        Chronological train/test split forecasting on daily sales.
+        Chronological train/test split forecasting on observed daily sales.
         Uses historical rolling trend extrapolation without look-ahead bias.
         """
         if self.daily_series is None:
@@ -131,6 +164,10 @@ class TimeSeriesAnalyzer:
             },
             "test_dates": [str(d.date()) for d in test.index],
             "actual_values": test.values.tolist(),
-            "predicted_values": trend_pred.tolist()
+            "predicted_values": trend_pred.tolist(),
+            "assumptions": (
+                "Forecasting operates on observed daily transaction totals ordered chronologically. "
+                "The test set comprises the final 60 observed trading days without random shuffling, "
+                "ensuring realistic forward-looking evaluation without look-ahead data leakage."
+            )
         }
-

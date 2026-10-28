@@ -7,7 +7,7 @@
 ![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit-red?logo=streamlit)
 ![FastAPI](https://img.shields.io/badge/API-FastAPI-teal?logo=fastapi)
 ![Status](https://img.shields.io/badge/Status-Complete-brightgreen)
-![Tests](https://img.shields.io/badge/Tests-30%20Passed-success)
+![Tests](https://img.shields.io/badge/Tests-33%20Passed-success)
 
 ---
 
@@ -24,17 +24,17 @@ This repository transforms the synthetic Customer Shopping Trends dataset into a
 | **Data Collection & Loading** | `src/data_loader.py` with multi-format parsing for CSV, JSON, XML, and TXT; strict schema validation and custom error handling. | `tests/test_data_loader.py` (5 unit tests passed). |
 | **Data Preprocessing** | `src/preprocessor.py` for category-level median imputation, duplicate removal, type casting, IQR-based outlier boundaries, age binning, frequency mapping, Min-Max normalization, and Z-score standardization. | `tests/test_preprocessor.py` (6 unit tests passed). |
 | **Data Integration** | Relational normalization splitting flat data into `customers` and `orders` entities linked by primary and foreign keys. | `sql/schema.sql` and `src/database.py`. |
-| **Descriptive Statistics** | `src/statistics.py` computing mean, median, mode, sample variance, standard deviation, quartiles, IQR, skewness, kurtosis, grouped revenue summaries, and cross-tabulation. | `tests/test_statistics.py` (3 unit tests passed). |
+| **Descriptive Statistics** | `src/statistics.py` computing mean, median, mode, sample variance, standard deviation, quartiles, IQR, skewness, kurtosis, grouped revenue summaries, and cross-tabulation. | `tests/test_statistics.py` (4 unit tests passed). |
 | **Data Aggregation** | Category-level and demographic spending summaries in Python and SQL (SUM, AVG, COUNT, HAVING). | `sql/queries.sql` and `src/statistics.py`. |
 | **Data Visualization** | Publication-ready Matplotlib distributions and boxplots; Seaborn demographic comparisons and correlation heatmaps; Plotly interactive donut and category charts. | `src/visualization.py` and `dashboard/app.py`. |
-| **Correlation Analysis** | Pearson correlation matrix and annotated Seaborn heatmap for numerical attributes. | `src/statistics.py` and `src/visualization.py`. |
-| **Regression Analysis** | `src/regression.py` predicting `purchase_amount` with train/test isolation (no leakage), baseline dummy model, Linear and Ridge models, evaluation (MAE, RMSE, $R^2$), residual diagnostics, and academic limitations. | `tests/test_regression.py` (2 unit tests passed). |
+| **Correlation Analysis** | Pearson correlation matrix excluding surrogate identifier columns (`customer_id`) and annotated Seaborn heatmap. | `src/statistics.py` and `src/visualization.py`. |
+| **Regression Analysis** | `src/regression.py` predicting `purchase_amount` with train/test isolation (no leakage), baseline dummy model, Linear and Ridge models, backward-compatible RMSE fallback, evaluation (MAE, RMSE, $R^2$), residual diagnostics, and academic limitations. | `tests/test_regression.py` (3 unit tests passed). |
 | **Database Management** | `src/database.py` with Python's `sqlite3`, DDL schema, parameterization, and 11 queries demonstrating joins, subqueries, CTEs, and window functions. | `tests/test_database.py` (3 unit tests passed). |
 | **API Communication** | `src/api.py` FastAPI service exposing `/health`, `/stats/summary`, `/stats/categories`, `/customers/filter` with input validation, and `/export/json`. | `tests/test_api.py` (6 unit tests passed). |
 | **Data Export** | Automated export of cleaned data and filtered results to CSV and JSON formats. | `data/processed/customer_shopping_cleaned.{csv,json}` and Streamlit download buttons. |
-| **Time-Series Analysis** | `src/timeseries.py` using authentic, date-indexed retail transactions; date parsing, daily/weekly/monthly resampling, 7-day and 30-day rolling averages, monthly seasonality, and chronological forecasting. | `tests/test_timeseries.py` (3 unit tests passed). |
+| **Time-Series Analysis** | `src/timeseries.py` using authentic, date-indexed retail transactions; date parsing, daily/weekly/monthly resampling, 7-day and 30-day rolling averages, complete annual cycle monthly seasonality (2023), and chronological forecasting. | `tests/test_timeseries.py` (4 unit tests passed). |
 | **Interactive Dashboard** | `dashboard/app.py` multi-tab Streamlit web application with live KPI metrics, dynamic sidebar slicers, interactive charts, and an in-browser SQLite query runner. | Verified on `localhost:8501`. |
-| **Reproducibility** | Modular architecture, `requirements.txt`, automated pytest test suite (30 passed), and reproducible Jupyter notebook. | `notebooks/dav_customer_shopping_analysis.ipynb`. |
+| **Reproducibility** | Modular architecture, `requirements.txt`, automated pytest test suite (32 passed), and reproducible Jupyter notebook. | `notebooks/dav_customer_shopping_analysis.ipynb`. |
 
 ---
 
@@ -70,7 +70,8 @@ customer-shopping-behaviour/
 │   ├── schema.sql                            # SQLite normalized schema (customers, orders)
 │   └── queries.sql                           # 11 analytical business queries (joins, CTE, window)
 ├── notebooks/
-│   └── dav_customer_shopping_analysis.ipynb  # End-to-end reproducible DAV practical notebook
+│   ├── dav_customer_shopping_analysis.ipynb  # End-to-end reproducible DAV practical notebook
+│   └── customer_shopping_behavior.ipynb      # Cleaned exploratory notebook
 ├── tests/
 │   ├── __init__.py
 │   ├── test_data_loader.py                   # Loader & schema validation tests
@@ -93,14 +94,19 @@ customer-shopping-behaviour/
 - **Source:** Kaggle — Customer Shopping Trends Dataset (`iamsouravbanerjee/customer-shopping-trends-dataset`).
 - **License:** CC0 Public Domain.
 - **Records:** 3,900 rows, 18 original features.
+- **Location:** `data/raw/customer_shopping_behavior.csv`.
 - **Attributes:** Customer ID, Age, Gender, Item Purchased, Category, Purchase Amount, Location, Size, Color, Season, Review Rating, Subscription Status, Shipping Type, Discount Applied, Previous Purchases, Payment Method, Frequency of Purchases.
 - **Critical Limitation:** The shopping dataset **lacks transaction timestamps or dates**. It includes only categorical variables (`Season` and `Frequency of Purchases`). Per academic integrity standards, synthetic dates are **not** fabricated.
 
 ### 2. Retail Sales Time-Series Dataset
 - **Source:** Public Retail Sales Transaction Data (`retail_sales_dataset.csv`).
-- **Temporal Span:** January 1, 2023 to January 1, 2024 (daily records).
+- **Temporal Span:** January 1, 2023 to January 1, 2024 (1,000 transactions across 345 observed trading dates).
+- **Location:** `data/timeseries/retail_sales_timeseries.csv`.
 - **Attributes:** Transaction ID, Date, Customer ID, Gender, Age, Product Category, Quantity, Price per Unit, Total Amount.
-- **Purpose:** Used strictly for date-based parsing, weekly/monthly resampling, 7-day/30-day moving averages, monthly seasonality indexing, and time-ordered train/test forecasting.
+- **Methodological Assumptions:**
+  - Preserves observed trading dates (345 days) rather than artificially filling 21 unobserved calendar dates with $0 sales, preventing artificial deflation of daily averages and distortion of rolling variance.
+  - Monthly seasonality index is evaluated on the complete annual cycle (January–December 2023, 998 transactions) to prevent the single observation on January 1, 2024 from skewing January seasonal metrics.
+  - Forecasting uses chronological train/test separation (last 60 observed days as test set) without look-ahead bias.
 
 ---
 
@@ -108,13 +114,14 @@ customer-shopping-behaviour/
 
 ### 1. Clone & Navigate to Repository
 ```bash
-git clone https://github.com/TusharB2301/customer-shopping-behaviour.git
-cd customer-shopping-behaviour
+git clone https://github.com/BhardwajYash18/DavProject.git
+cd DavProject
 ```
+*(If cloned into an existing folder name, e.g., `customer-shopping-behaviour`, navigate into that folder).*
 
 ### 2. Create and Activate a Virtual Environment
 ```bash
-# Windows
+# Windows (PowerShell)
 python -m venv .venv
 .venv\Scripts\activate
 
@@ -180,14 +187,14 @@ Follow the narrated practical steps from ingestion to forecasting.
 
 ## 🧪 Automated Testing
 
-Execute the complete 30-test suite using `pytest`:
+Execute the complete 32-test suite using `pytest`:
 ```bash
 python -m pytest tests/ -v
 ```
 
 Expected output:
 ```
-======================== 30 passed, 1 warning in 3.59s ========================
+======================== 32 passed in ~3.0s ========================
 ```
 
 ---
@@ -213,6 +220,9 @@ Expected output:
 
 ## 👤 Author & Academic Details
 
-- **Original Author:** Tushar Bhardwaj
+- **Author:** Yash Bhardwaj
+- **GitHub:** [BhardwajYash18](https://github.com/BhardwajYash18)
+- **Repository:** [DavProject](https://github.com/BhardwajYash18/DavProject.git)
+- **Original Dataset Credit:** Sourav Banerjee (Kaggle)
 - **Curriculum Alignment:** Data Analytics and Visualization (DAV) Laboratory Submission
 - **License:** MIT License
